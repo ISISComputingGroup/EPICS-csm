@@ -7,7 +7,7 @@ csmbase_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 INC = csmbase.h
 
-DOCS += html latex man
+#DOCS += html latex man
 
 include $(TOP)/configure/RULES
 #----------------------------------------
