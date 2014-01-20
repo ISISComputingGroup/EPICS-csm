@@ -1,0 +1,7 @@
+menu(menuCvtMethod) {
+    choice(menuCvtMethodLinear,"LINEAR")
+    choice(menuCvtMethodSubroutine,"SUBROUTINE")
+    choice(menuCvtMethod1DTable,"1D TABLE")
+    choice(menuCvtMethod1DTableInverted,"1D TABLE INVERTED")
+    choice(menuCvtMethod2DTable,"2D TABLE")
+}

@@ -1,0 +1,266 @@
+include "menuCvtInitState.dbd"
+include "menuCvtMethod.dbd"
+recordtype(cvt) {
+	include "dbCommon.dbd"
+	field(VAL,DBF_DOUBLE) {
+		prompt("Output Value")
+		special(SPC_NOMOD)
+	}
+	field(X,DBF_DOUBLE) {
+		prompt("Input Value X")
+		asl(ASL0)
+		pp(TRUE)
+	}
+	field(Y,DBF_DOUBLE) {
+		prompt("Input Value Y")
+		asl(ASL0)
+		pp(TRUE)
+	}
+	field(OUT,DBF_OUTLINK) {
+		prompt("Output Specification")
+		promptgroup(GUI_OUTPUT)
+		interest(1)
+	}
+	field(INPX,DBF_INLINK) {
+		prompt("Input X Loc")
+		promptgroup(GUI_INPUTS)
+		interest(1)
+	}
+	field(INPY,DBF_INLINK) {
+		prompt("Input Y Loc")
+		promptgroup(GUI_INPUTS)
+		interest(1)
+	}
+	field(METH,DBF_MENU) {
+		prompt("Conversion Method")
+		promptgroup(GUI_CONVERT)
+		special(SPC_NOMOD)
+		interest(1)
+		menu(menuCvtMethod)
+	}
+	field(NMET,DBF_MENU) {
+		prompt("New Conversion Method")
+		interest(2)
+		menu(menuCvtMethod)
+	}
+	field(TDIR,DBF_STRING) {
+		prompt("Conversion Table Directory")
+		promptgroup(GUI_CONVERT)
+		special(SPC_NOMOD)
+		interest(1)
+		size(40)
+	}
+	field(NTDI,DBF_STRING) {
+		prompt("New Table Directory")
+		interest(2)
+		size(40)
+	}
+	field(SPEC,DBF_STRING) {
+		prompt("Conversion Specification")
+		promptgroup(GUI_CONVERT)
+		special(SPC_NOMOD)
+		interest(1)
+		size(40)
+	}
+	field(NSPE,DBF_STRING) {
+		prompt("New Conversion Specification")
+		interest(2)
+		size(40)
+	}
+	field(ISTA,DBF_MENU) {
+		prompt("Initialize Conversion State")
+		special(SPC_NOMOD)
+		interest(2)
+		menu(menuCvtInitState)
+	}
+	field(DRTY,DBF_UCHAR) {
+		prompt("Dirty Bits (internal)")
+		special(SPC_NOMOD)
+		interest(4)
+	}
+	field(INIT,DBF_UCHAR) {
+		prompt("Re-Initialize Conversion")
+		special(SPC_MOD)
+		interest(2)
+	}
+	field(INIL,DBF_INLINK) {
+		prompt("Re-Initialize Conversion Location")
+		promptgroup(GUI_CONVERT)
+		interest(2)
+	}
+	field(CSUB,DBF_NOACCESS) {
+		prompt("Conversion Subroutine")
+		special(SPC_NOMOD)
+		interest(4)
+		extra("void	*csub")
+	}
+	field(XSLO,DBF_DOUBLE) {
+		prompt("Slope in X direction")
+		promptgroup(GUI_CONVERT)
+		pp(TRUE)
+		interest(1)
+		initial("1")
+	}
+	field(YSLO,DBF_DOUBLE) {
+		prompt("Slope in Y direction")
+		promptgroup(GUI_CONVERT)
+		pp(TRUE)
+		interest(1)
+		initial("1")
+	}
+	field(VOFF,DBF_DOUBLE) {
+		prompt("Value Offset")
+		promptgroup(GUI_CONVERT)
+		pp(TRUE)
+		interest(1)
+	}
+	field(PREC,DBF_SHORT) {
+		prompt("Display Precision")
+		promptgroup(GUI_DISPLAY)
+		interest(1)
+	}
+	field(EGU,DBF_STRING) {
+		prompt("Engineering Units")
+		promptgroup(GUI_DISPLAY)
+		interest(1)
+		size(16)
+	}
+	field(DRVH,DBF_DOUBLE) {
+		prompt("Drive High Limit")
+		promptgroup(GUI_OUTPUT)
+		pp(TRUE)
+		interest(1)
+	}
+	field(DRVL,DBF_DOUBLE) {
+		prompt("Drive Low Limit")
+		promptgroup(GUI_OUTPUT)
+		pp(TRUE)
+		interest(1)
+	}
+	field(HOPR,DBF_DOUBLE) {
+		prompt("High Operating Range")
+		promptgroup(GUI_DISPLAY)
+		interest(1)
+	}
+	field(LOPR,DBF_DOUBLE) {
+		prompt("Low Operating Range")
+		promptgroup(GUI_DISPLAY)
+		interest(1)
+	}
+	field(HIHI,DBF_DOUBLE) {
+		prompt("Hihi Alarm Limit")
+		promptgroup(GUI_ALARMS)
+		pp(TRUE)
+		interest(1)
+	}
+	field(LOLO,DBF_DOUBLE) {
+		prompt("Lolo Alarm Limit")
+		promptgroup(GUI_ALARMS)
+		pp(TRUE)
+		interest(1)
+	}
+	field(HIGH,DBF_DOUBLE) {
+		prompt("High Alarm Limit")
+		promptgroup(GUI_ALARMS)
+		pp(TRUE)
+		interest(1)
+	}
+	field(LOW,DBF_DOUBLE) {
+		prompt("Low Alarm Limit")
+		promptgroup(GUI_ALARMS)
+		pp(TRUE)
+		interest(1)
+	}
+	field(HHSV,DBF_MENU) {
+		prompt("Hihi Severity")
+		promptgroup(GUI_ALARMS)
+		pp(TRUE)
+		interest(1)
+		menu(menuAlarmSevr)
+	}
+	field(LLSV,DBF_MENU) {
+		prompt("Lolo Severity")
+		promptgroup(GUI_ALARMS)
+		pp(TRUE)
+		interest(1)
+		menu(menuAlarmSevr)
+	}
+	field(HSV,DBF_MENU) {
+		prompt("High Severity")
+		promptgroup(GUI_ALARMS)
+		pp(TRUE)
+		interest(1)
+		menu(menuAlarmSevr)
+	}
+	field(LSV,DBF_MENU) {
+		prompt("Low Severity")
+		promptgroup(GUI_ALARMS)
+		pp(TRUE)
+		interest(1)
+		menu(menuAlarmSevr)
+	}
+	field(HYST,DBF_DOUBLE) {
+		prompt("Alarm Deadband")
+		promptgroup(GUI_ALARMS)
+		interest(1)
+	}
+	field(ADEL,DBF_DOUBLE) {
+		prompt("Archive Deadband")
+		promptgroup(GUI_DISPLAY)
+		interest(1)
+	}
+	field(MDEL,DBF_DOUBLE) {
+		prompt("Monitor Deadband")
+		promptgroup(GUI_DISPLAY)
+		interest(1)
+	}
+	field(LALM,DBF_DOUBLE) {
+		prompt("Last Value Alarmed")
+		special(SPC_NOMOD)
+		interest(3)
+	}
+	field(ALST,DBF_DOUBLE) {
+		prompt("Last Value Archived")
+		special(SPC_NOMOD)
+		interest(3)
+	}
+	field(MLST,DBF_DOUBLE) {
+		prompt("Last Val Monitored")
+		special(SPC_NOMOD)
+		interest(3)
+	}
+	field(IVOA,DBF_MENU) {
+		prompt("INVALID output action")
+		promptgroup(GUI_OUTPUT)
+		interest(2)
+		menu(menuIvoa)
+	}
+	field(IVOV,DBF_DOUBLE) {
+		prompt("INVALID output value")
+		promptgroup(GUI_OUTPUT)
+		interest(2)
+	}
+	field(IAML,DBF_INLINK) {
+		prompt("Inactive Mode Location")
+		promptgroup(GUI_INPUTS)
+		interest(1)
+	}
+	field(IAVL,DBF_INLINK) {
+		prompt("Inactive Value Location")
+		promptgroup(GUI_INPUTS)
+		interest(1)
+	}
+	field(IAOV,DBF_DOUBLE) {
+		prompt("Inactive Value")
+		promptgroup(GUI_CONVERT)
+		interest(1)
+		pp(TRUE)
+	}
+	field(IAOM,DBF_MENU) {
+		prompt("Inactive Mode")
+		promptgroup(GUI_CONVERT)
+		interest(1)
+		menu(menuYesNo)
+		pp(TRUE)
+	}
+}

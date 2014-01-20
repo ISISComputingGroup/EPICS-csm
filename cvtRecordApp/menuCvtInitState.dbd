@@ -1,0 +1,6 @@
+menu(menuCvtInitState) {
+    choice(menuCvtInitStateDone,"Done")
+    choice(menuCvtInitStateInProgress,"InProgress")
+    choice(menuCvtInitStateAgain,"Again")
+    choice(menuCvtInitStateError,"Error")
+}
