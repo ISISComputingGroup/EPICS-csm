@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include <epicsMessageQueue.h>
 #include <epicsThread.h>
@@ -40,24 +41,30 @@
 #define errmsg(msg,args...) genmsg(errlogFatal,pcvt->name,msg, ## args)
 */
 
-/*
-static int genmsg(int sevr, cinst char* name, consty char* msg, ...)
+static int genmsg(int sevr, const char* name, const char* msg, va_list args)
 {
-    va_list args;
-	va_start(args, msg);
-    errlogSevVprintf(sevr,"%s(%s): " msg "\n", __FUNCTION__, name, args);
-	va_end(args);
-#define nerrmsg(name,msg,args...) genmsg(errlogFatal,name,msg, ## args)
-#define errmsg(msg,args...) genmsg(errlogFatal,pcvt->name,msg, ## args)
-*/
-static int nerrmsg(const char* name, const char* msg, ...) 
-{
-    return 0;
+    return errlogSevVprintf(sevr, msg, args);
+//    return errlogSevVprintf(sevr,"%s(%s): " msg "\n", __FUNCTION__, name, args);
 }
 
-static int errmsg(const char* msg, ...)
+static int nerrmsg(const char* name, const char* msg, ...) 
 {
-    return 0;
+    int ret;
+    va_list args;
+	va_start(args, msg);
+	ret = genmsg(errlogFatal, name, msg, args);
+	va_end(args);
+    return ret;
+}
+
+static int errmsg(struct cvtRecord *pcvt, const char* msg, ...)
+{
+    int ret;
+    va_list args;
+	va_start(args, msg);
+	ret = genmsg(errlogFatal, pcvt->name, msg, args);
+	va_end(args);
+    return ret;
 }
 
 /* standard EPICS record support stuff */
@@ -260,7 +267,7 @@ error:
             break;
         default:
             status = S_db_badField;
-            errmsg("internal error: Illegal value in IVOA field");
+            errmsg(pcvt, "internal error: Illegal value in IVOA field");
             recGblSetSevr(pcvt, SOFT_ALARM, INVALID_ALARM);
             recGblResetAlarms(pcvt);
             return status;
@@ -301,7 +308,7 @@ static long checkInit(struct cvtRecord *pcvt)
     case menuCvtInitStateAgain:
         break;
     default:
-        errmsg("internal error: illegal value %d in field ISTA", pcvt->ista);
+        errmsg(pcvt, "internal error: illegal value %d in field ISTA", pcvt->ista);
         pcvt->pact = TRUE;
         return -1;
     }
@@ -324,12 +331,12 @@ static long special(struct dbAddr *paddr, int after)
             }
             return 0;
         default:
-            errmsg("internal error: special called for wrong field");
+            errmsg(pcvt, "internal error: special called for wrong field");
             pcvt->pact = TRUE;
             return -1;
         }
     }
-    errmsg("internal error: special called with wrong special type");
+    errmsg(pcvt, "internal error: special called with wrong special type");
     pcvt->pact = TRUE;
     return -1;
 }
@@ -636,7 +643,7 @@ static long convert(struct cvtRecord *pcvt)
                 break;
             }
             default: {
-                errmsg("internal error: METH is not a member of menuCvtMethod");
+                errmsg(pcvt, "internal error: METH is not a member of menuCvtMethod");
                 goto error;
             }
         }
@@ -735,7 +742,7 @@ static long reinitConversion(struct cvtRecord *pcvt)
     qstatus = epicsMessageQueueSend(
         initConversionQ, (void*)&msg, REINIT_MSG_SIZE);
     if (qstatus == -1) {
-        errmsg("internal error: msgQ overrun");
+        errmsg(pcvt, "internal error: msgQ overrun");
         return -1;
     }
     return 0;
@@ -809,12 +816,12 @@ static void initConversionTask(void* parm)
                 pcvt->drty |= DRTY_ISTA;
                 break;
             case menuCvtInitStateDone:
-                errmsg("internal error: unexpected "
+                errmsg(pcvt, "internal error: unexpected "
                     "value <menuCvtInitStateDone> in field ISTA");
                 pcvt->pact = TRUE;
                 break;
             default:
-                errmsg("internal error: ISTA is not a member of menuCvtMethod");
+                errmsg(pcvt, "internal error: ISTA is not a member of menuCvtMethod");
                 pcvt->pact = TRUE;
             }
         }
