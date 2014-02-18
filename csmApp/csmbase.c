@@ -1603,9 +1603,12 @@ csm_bool csm_read_1d_table(char *filename, csm_function *func)
           continue;
         if (2!=sscanf(line, " %lf %lf %c",
                       &(xc->value), &(yc->value), &dummy))
-          { DBG_MSG_PRINTF5("warning[%s:%d]: the following line of the "
-	           "data-file (%s) was not understood:\n%s\n",
-		   __FILE__,__LINE__,filename,line);
+		{
+		  if (2!=sscanf(line, " %lf , %lf %c",
+                      &(xc->value), &(yc->value), &dummy))
+              { DBG_MSG_PRINTF5("warning[%s:%d]: the following line of the "
+	               "data-file (%s) was not understood:\n%s\n",
+		            __FILE__,__LINE__,filename,line);
 	    if (++errcount<4)
 	      continue;
 	    fclose(f);
@@ -1615,6 +1618,7 @@ csm_bool csm_read_1d_table(char *filename, csm_function *func)
 			  __FILE__,__LINE__);
             return(CSM_FALSE);
           };
+       }
 	xc->index= i;
 	yc->index= i;
         i++, xc++,yc++;
