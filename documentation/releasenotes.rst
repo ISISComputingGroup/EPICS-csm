@@ -1,6 +1,20 @@
 Release Notes
 =============
 
+.. _R4-3:
+
+Changes since R4-2
+------------------
+
+* cvtRecord: added BDIR/NBDI fields
+
+  The directory where a table file is located is now constructed by
+  concatenating the new BDIR with the TDIR fields (with a "/" in between).
+  This is a work-around for the 40 character string limitation in EPICS.
+  Specifically, there is currently no existing record type that can
+  calculate a string concatenation such that the result is longer than 40
+  characters.
+
 .. _R4-2:
 
 Changes since R4-1

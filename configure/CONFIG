@@ -12,7 +12,6 @@ include $(TOP)/configure/CONFIG_APP
 # before this takes effect.
 #IOCS_APPL_TOP = <the top of the application as seen by the IOC>
 
-#DOC_APPDIR := $(subst /O.$(T_A),,$(subst $(shell cd $(TOP); /bin/pwd)/,,$(shell /bin/pwd)))
-DOC_APPDIR := csm
+DOC_APPDIR := $(subst /O.$(T_A),,$(subst $(shell cd $(TOP); /bin/pwd)/,,$(shell /bin/pwd)))
 
 INSTALL_DOC := $(INSTALL_LOCATION)/html/$(DOC_APPDIR)

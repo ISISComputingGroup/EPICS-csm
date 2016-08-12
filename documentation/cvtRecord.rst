@@ -92,19 +92,19 @@ The field METH, of type `menuCvtMethod`_, specifies the conversion method:
    includes writing any pointer-sized value to the given address.
 -  ``1D TABLE``: Table-driven conversion with one input value. SPEC
    should be the filename of a one-dimensional table as specified by the
-   `csm module`_. If TDIR is specified, the file must be in directory TDIR,
-   otherwise the current directory is used. X is used as input to the csm
-   routine `csm_y`_. The value of Y is ignored.
+   `csm module`_. The BDIR and TDIR field specify parts of the directory
+   of the file, the complete path of the table file is BDIR/TDIR/SPEC.
+   X is used as input to the csm routine `csm_y`_. The value of Y is ignored.
 -  ``1D TABLE INVERTED``: Same as ``1D TABLE``, except conversion
    direction is backwards: Input is Y and conversion uses the csm routine
    `csm_x`_. The value of X is ignored.
 -  ``2D TABLE``: Table-driven conversion with two input values. SPEC
    should be the filename of a two-dimensional table as specified by the
-   `csm module`_. If TDIR is specified, the file must be in directory TDIR,
-   otherwise the current directory is used. Both X and Y are used as inputs
+   `csm module`_. BDIR and TDIR togetehr determine the directory of the file,
+   see case ``1D TABLE`` above. Both X and Y are used as inputs
    to the csm routine `csm_z`_.
 
-The fields METH, SPEC, and TDIR are read-only and always represent the
+The fields METH, SPEC, BDIR, and TDIR are read-only and always represent the
 conversion currently in effect.
 
 CVSR is used to implement the non-``LINEAR`` conversions.
@@ -114,6 +114,7 @@ Field Summary                    Type              DCT Initial Access Modify Rec
 ===== ========================== ================= === ======= ====== ====== ================ ===
 METH  Conversion Method          `menuCvtMethod`_  Yes LINEAR  Yes      No    Yes             No
 SPEC  Conversion Specification   STRING[40]        Yes         Yes      No    Yes             No
+BDIR  Base Directory             STRING[40]        Yes         Yes      No    No              No
 TDIR  Table Directory            STRING[40]        Yes         Yes      No    No              No
 XSLO  Slope in X direction       DOUBLE            Yes 0       Yes      Yes   No              Yes
 YSLO  Slope in Y direction       DOUBLE            Yes 0       Yes      Yes   No              Yes
@@ -130,15 +131,17 @@ without interrupting operation. If conversion method is ``LINEAR``, new
 values written to XSLO, YSLO, or VOFF will take immediate effect. For other
 conversion types, or if the conversion type itself needs to be changed, new
 conversion type values should be written to NMET and new conversion
-specification strings to NSPE. These new values will not take immediate
-effect. Instead, conversion will be re-initialized only after writing a non-
-zero value to the field INIT or if the value retrieved by the input link INIL
-is non-zero.
+specification strings to NSPE, new table directory parts to NBDI and NTDI.
+These new values will not take immediate effect. Instead, conversion will be
+re-initialized only after writing a non- zero value to the field INIT or if
+the value retrieved by the input link INIL is non-zero.
 
 ===== ========================== ==================== === ======= ====== ====== ================ ===
 Field Summary                    Type                 DCT Initial Access Modify Rec Proc Monitor PP
 ===== ========================== ==================== === ======= ====== ====== ================ ===
 NMET  New Conversion Method      `menuCvtMethod`_     No  LINEAR  Yes      Yes      Yes          No
+NBDI  New Base Directory         STRING[40]           No          Yes      Yes      No           No
+NTDI  New Table Directory        STRING[40]           No          Yes      Yes      No           No
 NSPE  New Conversion             STRING[40]           No          Yes      Yes      No           No
       Specification
 ISTA  Initialization State       `menuCvtInitState`_  No  Done    Yes      No       Yes          No
@@ -304,7 +307,7 @@ This routine does nothing in pass 0. In pass 1, it does following:
 
 -  If INPX and INPY are constant links, fields X and Y are initialized
    to the respective values.
--  NMET is set to METH and NSPE to SPEC.
+-  NMET is set to METH, NSPE to SPEC, NBDI to BDIR, and NTDI to TDIR.
 -  Conversion is initialized according to METH and SPEC. If an error
    occurs, conversion method falls back to ``LINEAR``.
 

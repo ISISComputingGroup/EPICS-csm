@@ -334,13 +334,7 @@ Version 0.96:
 
 #ifndef NAN
 /*! \internal \brief define NAN if it is not yet defined */
-static double makeNAN()
-{
-    static double zero = 0.0;
-    return -(zero / zero);
-}
-/* #define NAN (-(0.0/0.0)) */
-#define NAN makeNAN()
+#define NAN (-(0.0/0.0))
 #endif
 
 /*@ITI________________________________________________________*/

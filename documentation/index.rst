@@ -34,6 +34,8 @@ You can also `browse the repository`_.
  ========= =============== ============================ ===============
   Version   EPICS Release   Filename                     Release Notes
  ========= =============== ============================ ===============
+    4.3       3.14.12.2     :download:`csm-4.3.tar.gz`    :ref:`R4-3`
+ --------- --------------- ---------------------------- ---------------
     4.2       3.14.12.2     :download:`csm-4.2.tar.gz`    :ref:`R4-2`
  --------- --------------- ---------------------------- ---------------
     4.1       3.14.12.2     :download:`csm-4.1.tar.gz`    :ref:`R4-1`
@@ -110,7 +112,6 @@ authors.
 .. _Ben Franksen: mailto:benjamin.franksen@helmholtz-berlin.de
 .. _Götz Pfeiffer: mailto:goetz.pfeiffer@helmholtz-berlin.de
 .. _darcs: http://www.darcs.net/
-.. _csm-3.2.tar.gz: csm-3.2.tar.gz
 .. _HZB: http://www.helmholtz-berlin.de/
 .. _EPICS: http://www.aps.anl.goc/epics/
 .. _browse the repository: http://www-csr.bessy.de/cgi-bin/darcsweb.cgi?r=csm;a=summary

@@ -31,34 +31,18 @@
 #include "menuCvtMethod.h"
 #include "menuCvtInitState.h"
 
+/* Warning: these must correspond exactly to the size property of the
+   fields in the dbd file */
+#define BDIR_SIZE 40
+#define TDIR_SIZE 40
+#define SPEC_SIZE 40
+
 /* error message macros */
 
-/*
 #define genmsg(sevr,name,msg,args...)\
     errlogSevPrintf(sevr,"%s(%s): " msg "\n", __FUNCTION__, name, ## args)
 #define nerrmsg(name,msg,args...) genmsg(errlogFatal,name,msg, ## args)
 #define errmsg(msg,args...) genmsg(errlogFatal,pcvt->name,msg, ## args)
-*/
-
-/*
-static int genmsg(int sevr, cinst char* name, consty char* msg, ...)
-{
-    va_list args;
-	va_start(args, msg);
-    errlogSevVprintf(sevr,"%s(%s): " msg "\n", __FUNCTION__, name, args);
-	va_end(args);
-#define nerrmsg(name,msg,args...) genmsg(errlogFatal,name,msg, ## args)
-#define errmsg(msg,args...) genmsg(errlogFatal,pcvt->name,msg, ## args)
-*/
-static int nerrmsg(const char* name, const char* msg, ...) 
-{
-    return 0;
-}
-
-static int errmsg(const char* msg, ...)
-{
-    return 0;
-}
 
 /* standard EPICS record support stuff */
 
@@ -146,10 +130,11 @@ typedef double cvt_subroutine(double,double,void**);
 #define DRTY_NONE 0x00
 #define DRTY_METH 0x01
 #define DRTY_SPEC 0x02
-#define DRTY_TDIR 0x04
-#define DRTY_ISTA 0x08
-#define DRTY_X    0x10
-#define DRTY_Y    0x20
+#define DRTY_BDIR 0x04
+#define DRTY_TDIR 0x08
+#define DRTY_ISTA 0x10
+#define DRTY_X    0x20
+#define DRTY_Y    0x40
 
 static void checkAlarms(struct cvtRecord *pcvt);
 static long readInputs(struct cvtRecord *pcvt);
@@ -157,7 +142,7 @@ static long convert(struct cvtRecord *pcvt);
 static void monitor(struct cvtRecord *pcvt);
 static long checkInit(struct cvtRecord *pcvt);
 static long reinitConversion(struct cvtRecord *pcvt);
-static long initConversion(const char *name, const char *tdir,
+static long initConversion(const char *name, const char *bdir, const char *tdir,
     menuCvtMethod meth, const char *spec, void **psub);
 
 static epicsMessageQueueId initConversionQ;
@@ -184,8 +169,9 @@ static long init_record(struct cvtRecord *pcvt, int pass)
     if (pass == 0) {
         /* set new conversion parameters equal to to configured ones */
         pcvt->nmet = pcvt->meth;
-        strncpy(pcvt->nspe, pcvt->spec, MAX_STRING_SIZE);
-        strncpy(pcvt->ntdi, pcvt->tdir, MAX_STRING_SIZE);
+        strncpy(pcvt->nbdi, pcvt->bdir, BDIR_SIZE);
+        strncpy(pcvt->ntdi, pcvt->tdir, TDIR_SIZE);
+        strncpy(pcvt->nspe, pcvt->spec, SPEC_SIZE);
         return 0;
     }
 
@@ -204,7 +190,7 @@ static long init_record(struct cvtRecord *pcvt, int pass)
     }
 
     /* try to initialize conversion as specified */
-    if (initConversion(pcvt->name, pcvt->ntdi, pcvt->nmet, pcvt->nspe, &sub)) {
+    if (initConversion(pcvt->name, pcvt->nbdi, pcvt->ntdi, pcvt->nmet, pcvt->nspe, &sub)) {
         pcvt->ista = menuCvtInitStateError;
         pcvt->drty |= DRTY_ISTA;
         return -1;
@@ -520,7 +506,7 @@ static long readInputs(struct cvtRecord *pcvt)
 }
 
 static long initConversion(
-    const char *name, const char *tdir,
+    const char *name, const char *bdir, const char *tdir,
     menuCvtMethod meth, const char *spec, void **psub)
 {
     *psub = 0;
@@ -550,14 +536,14 @@ static long initConversion(
         case menuCvtMethod1DTableInverted:
         {
             csm_function *csub;
-            char temp[2*MAX_STRING_SIZE];
+            char temp[BDIR_SIZE+TDIR_SIZE+SPEC_SIZE+2];
 
             csub = csm_new_function();
             if (!csub) {
                 nerrmsg(name, "csm_new_function failed");
                 return -1;
             }
-            sprintf(temp, "%s/%s", tdir, spec);
+            sprintf(temp, "%s/%s/%s", bdir, tdir, spec);
             if (!csm_read_1d_table(temp, csub)) {
                 nerrmsg(name, "configuration error: "
                     "File %s is not a valid 1-parameter table", temp);
@@ -570,14 +556,14 @@ static long initConversion(
         case menuCvtMethod2DTable:
         {
             csm_function *csub;
-            char temp[2*MAX_STRING_SIZE];
+            char temp[BDIR_SIZE+TDIR_SIZE+SPEC_SIZE+2];
 
             csub = csm_new_function();
             if (!csub) {
                 nerrmsg(name, "csm_new_function failed");
                 return -1;
             }
-            sprintf(temp, "%s/%s", tdir, spec);
+            sprintf(temp, "%s/%s/%s", bdir, tdir, spec);
             if (!csm_read_2d_table(temp, csub)) {
                 nerrmsg(name, "configuration error: "
                     "File %s is not a valid 2-parameter table", temp);
@@ -696,6 +682,9 @@ static void monitor(struct cvtRecord *pcvt)
     if (pcvt->drty & DRTY_SPEC) {
         db_post_events(pcvt, &pcvt->spec, DBE_VALUE|DBE_LOG);
     }
+    if (pcvt->drty & DRTY_BDIR) {
+        db_post_events(pcvt, &pcvt->bdir, DBE_VALUE|DBE_LOG);
+    }
     if (pcvt->drty & DRTY_TDIR) {
         db_post_events(pcvt, &pcvt->tdir, DBE_VALUE|DBE_LOG);
     }
@@ -714,8 +703,9 @@ static void monitor(struct cvtRecord *pcvt)
 
 struct reinitMsg {
     struct cvtRecord *record;
-    char spec[MAX_STRING_SIZE];
-    char tdir[MAX_STRING_SIZE];
+    char spec[SPEC_SIZE];
+    char bdir[TDIR_SIZE];
+    char tdir[TDIR_SIZE];
     menuCvtMethod meth;
 };
 
@@ -729,8 +719,9 @@ static long reinitConversion(struct cvtRecord *pcvt)
     msg.record = pcvt;
     msg.meth = pcvt->nmet;
     if (pcvt->nmet != menuCvtMethodLinear) {
-        strncpy(msg.spec, pcvt->nspe, MAX_STRING_SIZE);
-        strncpy(msg.tdir, pcvt->ntdi, MAX_STRING_SIZE);
+        strncpy(msg.spec, pcvt->nspe, SPEC_SIZE);
+        strncpy(msg.bdir, pcvt->nbdi, BDIR_SIZE);
+        strncpy(msg.tdir, pcvt->ntdi, TDIR_SIZE);
     }
     qstatus = epicsMessageQueueSend(
         initConversionQ, (void*)&msg, REINIT_MSG_SIZE);
@@ -757,7 +748,7 @@ static void initConversionTask(void* parm)
             continue;
         }
         pcvt = msg.record;
-        status = initConversion(pcvt->name, msg.tdir, msg.meth, msg.spec, &sub);
+        status = initConversion(pcvt->name, msg.bdir, msg.tdir, msg.meth, msg.spec, &sub);
         dbScanLock((struct dbCommon *)pcvt);
         if (status && pcvt->ista != menuCvtInitStateAgain) {
             if (pcvt->ista != menuCvtInitStateError) {
@@ -784,9 +775,11 @@ static void initConversionTask(void* parm)
                 /* ...and write the new values back into the record */
                 pcvt->meth = msg.meth;
                 pcvt->drty |= DRTY_METH;
-                strncpy(pcvt->spec, msg.spec, MAX_STRING_SIZE);
+                strncpy(pcvt->spec, msg.spec, SPEC_SIZE);
                 pcvt->drty |= DRTY_SPEC;
-                strncpy(pcvt->tdir, msg.tdir, MAX_STRING_SIZE);
+                strncpy(pcvt->bdir, msg.bdir, BDIR_SIZE);
+                pcvt->drty |= DRTY_BDIR;
+                strncpy(pcvt->tdir, msg.tdir, TDIR_SIZE);
                 pcvt->drty |= DRTY_TDIR;
                 pcvt->csub = sub;
                 break;
