@@ -43,6 +43,18 @@ recordtype(cvt) {
 		interest(2)
 		menu(menuCvtMethod)
 	}
+	field(BDIR,DBF_STRING) {
+		prompt("Base Directory")
+		promptgroup(GUI_CONVERT)
+		special(SPC_NOMOD)
+		interest(1)
+		size(40)
+	}
+	field(NBDI,DBF_STRING) {
+		prompt("New Base Directory")
+		interest(2)
+		size(40)
+	}
 	field(TDIR,DBF_STRING) {
 		prompt("Conversion Table Directory")
 		promptgroup(GUI_CONVERT)

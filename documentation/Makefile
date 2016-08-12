@@ -84,7 +84,7 @@ TARS := $(RELEASES:%=$(PROJECT)-%.tar.gz)
 
 CLEANS += $(TARS)
 
-tar: $(firstword $(TARS))
+tar: $(TARS)
 
 $(PROJECT)-%.tar.gz:
 	darcs dist -d documentation/$(PROJECT)-$* -t $(call rel2tag,$*) $(SUPPRESS_OUTPUT)
