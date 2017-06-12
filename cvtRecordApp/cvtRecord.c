@@ -29,8 +29,8 @@
 
 #include <csmbase.h>
 
-//#include "menuCvtMethod.h"
-//#include "menuCvtInitState.h"
+/*#include "menuCvtMethod.h"*/
+/*#include "menuCvtInitState.h"*/
 
 /* Warning: these must correspond exactly to the size property of the
    fields in the dbd file */
