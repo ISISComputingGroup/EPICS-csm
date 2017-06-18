@@ -324,6 +324,8 @@ Version 0.96:
 /* math.h for definition of NAN */
 #include <math.h>
 
+#include <epicsExport.h>
+
 /*@ITI________________________________________________________*/
 /*                         Defines                            */
 /*@ET_________________________________________________________*/
@@ -1180,7 +1182,7 @@ printf(" ret: %f\n",
 */
 
 /*@EX(1)*/
-double csm_x(csm_function *func, double y)
+epicsShareExtern double csm_x(csm_function *func, double y)
   { double ret;
 
     SEMTAKE(func->semaphore);
@@ -1222,7 +1224,7 @@ double csm_x(csm_function *func, double y)
 */
 
 /*@EX(1)*/
-double csm_y(csm_function *func, double x)
+epicsShareExtern double csm_y(csm_function *func, double x)
   { double ret;
 
     SEMTAKE(func->semaphore);
@@ -1265,7 +1267,7 @@ double csm_y(csm_function *func, double x)
 */
 
 /*@EX(1)*/
-double csm_dx(csm_function *func, double y)
+epicsShareExtern double csm_dx(csm_function *func, double y)
   { double ret;
 
     SEMTAKE(func->semaphore);
@@ -1298,7 +1300,7 @@ double csm_dx(csm_function *func, double y)
 */
 
 /*@EX(1)*/
-double csm_dy(csm_function *func, double x)
+epicsShareExtern double csm_dy(csm_function *func, double x)
   { double ret;
 
     SEMTAKE(func->semaphore);
@@ -1331,7 +1333,7 @@ double csm_dy(csm_function *func, double x)
 */
 
 /*@EX(1)*/
-double csm_z(csm_function *func, double x, double y)
+epicsShareExtern double csm_z(csm_function *func, double x, double y)
   { double ret;
 
     SEMTAKE(func->semaphore);
@@ -1459,7 +1461,7 @@ static int strdoublescan(char *st, double *d, int no_of_cols)
 */
 
 /*@EX(1)*/
-void csm_clear(csm_function *func)
+epicsShareExtern void csm_clear(csm_function *func)
   { SEMTAKE(func->semaphore);
     func->on_hold= CSM_TRUE;
     SEMGIVE(func->semaphore);
@@ -1480,7 +1482,7 @@ void csm_clear(csm_function *func)
   \param func pointer to the function object
 */
 /*@EX(1)*/
-void csm_free(csm_function *func)
+epicsShareExtern void csm_free(csm_function *func)
   { csm_clear(func);
     SEMDELETE(func->semaphore);
     free(func);
@@ -1498,7 +1500,7 @@ void csm_free(csm_function *func)
 */
 
 /*@EX(1)*/
-void csm_def_linear(csm_function *func, double a, double b)
+epicsShareExtern void csm_def_linear(csm_function *func, double a, double b)
   /* y= a+b*x */
   { SEMTAKE(func->semaphore);
     func->on_hold= CSM_TRUE;
@@ -1523,7 +1525,7 @@ void csm_def_linear(csm_function *func, double a, double b)
 */
 
 /*@EX(1)*/
-csm_bool csm_def_linear_offset(csm_function *func, double a)
+epicsShareExtern csm_bool csm_def_linear_offset(csm_function *func, double a)
   { if (func->type!=CSM_LINEAR)
       { DBG_MSG_PRINTF2("error in csm_def_linear_offset line %d,\n" \
                         "not a linear function!\n", __LINE__);
@@ -1547,7 +1549,7 @@ csm_bool csm_def_linear_offset(csm_function *func, double a)
 */
 
 /*@EX(1)*/
-csm_bool csm_read_1d_table(char *filename, csm_function *func)
+epicsShareExtern csm_bool csm_read_1d_table(char *filename, csm_function *func)
 /* if len==0, the table length is determined by counting the number of lines
    in the file from the current position to it's end */
   { char line[128];
@@ -1666,7 +1668,7 @@ csm_bool csm_read_1d_table(char *filename, csm_function *func)
 */
 
 /*@EX(1)*/
-csm_bool csm_read_2d_table(char *filename, csm_function *func)
+epicsShareExtern csm_bool csm_read_2d_table(char *filename, csm_function *func)
 /* file format:
     y1   y2   y3  ..
 x1  z11  z12  z13 ...
@@ -1839,7 +1841,7 @@ x2  z21  z22  z23 ...
 */
 
 /*@EX(1)*/
-void csm_init(void)
+epicsShareExtern void csm_init(void)
   {
     if (initialized)
       return;
@@ -1861,7 +1863,7 @@ void csm_init(void)
 */
 
 /*@EX(1)*/
-csm_function *csm_new_function(void)
+epicsShareExtern csm_function *csm_new_function(void)
   {
     csm_function *f= malloc(sizeof(csm_function));
 
@@ -1989,7 +1991,7 @@ static void csm_pr_2d_table(csm_2d_functiontable *ft)
   \param func pointer to the function object
 */
 /*@EX(1)*/
-void csm_pr_func(csm_function *func)
+epicsShareExtern void csm_pr_func(csm_function *func)
   { if (func->on_hold)
       printf("function is on hold!\n");
     else

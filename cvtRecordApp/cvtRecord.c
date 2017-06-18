@@ -25,9 +25,9 @@
 #undef  GEN_SIZE_OFFSET
 #include <menuIvoa.h>
 
-#include <epicsExport.h>
-
 #include <csmbase.h>
+
+#include <epicsExport.h>
 
 /*#include "menuCvtMethod.h"*/
 /*#include "menuCvtInitState.h"*/

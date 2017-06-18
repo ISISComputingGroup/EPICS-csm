@@ -328,7 +328,7 @@ sub process_file
 			  { $emit_flag= $arg; $skip_emit=0; }
 			else
                           { $emit_flag= $arg + 1; $skip_emit=1; };
-			$pre= "extern ";
+			$pre= "";
 			$indent= length($pre);
 			$post= ';';
 			$postre= 's/=[^\)]+$//';
