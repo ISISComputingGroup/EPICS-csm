@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include <epicsMessageQueue.h>
 #include <epicsThread.h>
@@ -101,15 +102,15 @@ epicsExportAddress(rset,cvtRSET);
 /*
  * General Remarks
  * ===============
- * 
+ *
  * This record type supports conversion of one or two floating point values
  * into one resulting floating point value. The field METH specifies the kind
  * of conversion: LINEAR, via a custom SUBROUTINE, or via one- (1D) or
  * two-dimensional (2D) conversion TABLE. More specifically, if METH is
- * 
+ *
  * menuCvtMethodLinear:
  *     VAL = XSLO * X + YSLO * Y + VOFF
- * 
+ *
  * menuCvtMethodSubroutine:
  *     SPEC should be the name of a global subroutine. CSUB is set to the
  *     address of the subroutine.
@@ -151,7 +152,7 @@ static void monitor(struct cvtRecord *pcvt);
 static long checkInit(struct cvtRecord *pcvt);
 static long reinitConversion(struct cvtRecord *pcvt);
 static long initConversion(const char *name, const char *bdir, const char *tdir,
-    menuCvtMethod meth, const char *spec, void **psub);
+    menuCvtMethod meth, const char *spec, void **psub, struct cvtRecord *pcvt);
 
 static epicsMessageQueueId initConversionQ;
 
@@ -198,7 +199,7 @@ static long init_record(struct cvtRecord *pcvt, int pass)
     }
 
     /* try to initialize conversion as specified */
-    if (initConversion(pcvt->name, pcvt->nbdi, pcvt->ntdi, pcvt->nmet, pcvt->nspe, &sub)) {
+    if (initConversion(pcvt->name, pcvt->nbdi, pcvt->ntdi, pcvt->nmet, pcvt->nspe, &sub, pcvt)) {
         pcvt->ista = menuCvtInitStateError;
         pcvt->drty |= DRTY_ISTA;
         return -1;
@@ -515,7 +516,7 @@ static long readInputs(struct cvtRecord *pcvt)
 
 static long initConversion(
     const char *name, const char *bdir, const char *tdir,
-    menuCvtMethod meth, const char *spec, void **psub)
+    menuCvtMethod meth, const char *spec, void **psub, struct cvtRecord *pcvt)
 {
     *psub = 0;
     switch (meth) {
@@ -523,17 +524,68 @@ static long initConversion(
         {
             break;
         }
+        case menuCvtMethodUser1DTableSub:
+        {
+          double *x_arr;
+          double *y_arr;
+          int no_of_elements;
+
+          csm_function *csub; // dummy csub
+          char temp[BDIR_SIZE+TDIR_SIZE+SPEC_SIZE+2];
+          sprintf(temp, "%s/%s/%s", bdir, tdir, spec);
+
+          csub = csm_new_function();
+
+          // contained within csub is an array of coordinate structs which need
+          // to be pulled out and given to the spline initialiser
+          if (!csm_read_1d_table(temp, csub)) {
+            nerrmsg(pcvt->name, "configuration error: "
+                    "File %s is not a valid 1-parameter table", temp);
+            csm_free(csub);
+            return -1;
+          }
+          else {
+            no_of_elements = csub->f.tf_1.x.no_of_elements;
+            x_arr = (double *)malloc(sizeof(double) * no_of_elements);
+            y_arr = (double *)malloc(sizeof(double) * no_of_elements);
+            // extract relevant data from csub->f.tf_1.x and y values
+            for (int i=0; i<no_of_elements; i++) {
+              x_arr[i] = csub->f.tf_1.x.coordinate[i]->value;
+              y_arr[i] = csub->f.tf_1.y.coordinate[i]->value;
+            }
+            // discard csub - no longer needed
+            csm_free(csub);
+          }
+          // Register function
+          // REGISTRYFUNCTION user1DTableSub(bool isInit, double x_data[], double y_data[], int len_arr, double x, void ** dpvt);
+
+          double (*user1DTableSub)(bool isInit, double x_data[], double y_data[], int len_arr, double x, void ** dpvt);
+
+          // user1DTableSub = registryFunction(user1DTableSub);
+          if (!user1DTableSub) {
+              nerrmsg(name, "configuration error: subroutine not registered");
+              return -1;
+          }
+          // Once read, run the function with an init flag to get it
+          // to build a spline fit with the data read from the table.
+          (*user1DTableSub)(true, x_arr, y_arr, no_of_elements, 0, &pcvt->dpvt);
+          pcvt->csub = user1DTableSub;
+          free(x_arr);
+          free(y_arr);
+          break;
+
+        }
         case menuCvtMethodSubroutine:
         {
             REGISTRYFUNCTION csub;
 
             if(spec[0]==0) {
-                nerrmsg(name, "configuration error: SPEC not specified");
+                nerrmsg(pcvt->name, "configuration error: SPEC not specified");
                 return -1;
             }
             csub = registryFunctionFind(spec);
             if (!csub) {
-                nerrmsg(name, "configuration error: "
+                nerrmsg(pcvt->name, "configuration error: "
                     "SPEC is not the name of a registered subroutine");
                 return -1;
             }
@@ -548,12 +600,12 @@ static long initConversion(
 
             csub = csm_new_function();
             if (!csub) {
-                nerrmsg(name, "csm_new_function failed");
+                nerrmsg(pcvt->name, "csm_new_function failed");
                 return -1;
             }
             sprintf(temp, "%s/%s/%s", bdir, tdir, spec);
             if (!csm_read_1d_table(temp, csub)) {
-                nerrmsg(name, "configuration error: "
+                nerrmsg(pcvt->name, "configuration error: "
                     "File %s is not a valid 1-parameter table", temp);
                 csm_free(csub);
                 return -1;
@@ -568,12 +620,12 @@ static long initConversion(
 
             csub = csm_new_function();
             if (!csub) {
-                nerrmsg(name, "csm_new_function failed");
+                nerrmsg(pcvt->name, "csm_new_function failed");
                 return -1;
             }
             sprintf(temp, "%s/%s/%s", bdir, tdir, spec);
             if (!csm_read_2d_table(temp, csub)) {
-                nerrmsg(name, "configuration error: "
+                nerrmsg(pcvt->name, "configuration error: "
                     "File %s is not a valid 2-parameter table", temp);
                 csm_free(csub);
                 return -1;
@@ -595,6 +647,18 @@ static long convert(struct cvtRecord *pcvt)
         switch (pcvt->meth) {
             case menuCvtMethodLinear: {
                 value = pcvt->x * pcvt->xslo + pcvt->y * pcvt->yslo + pcvt->voff;
+                break;
+            }
+            case menuCvtMethodUser1DTableSub: {
+                // call subroutine with false init flag so that it doesn't
+                // try to rebuild the fit and realloc.
+                double (*user1DTableSubPtr)(bool, double, double, int, double, void **);
+                user1DTableSubPtr = pcvt->csub;
+
+                if (!user1DTableSubPtr) {
+                  goto error;
+                }
+                value = (*user1DTableSubPtr)(false, 0, 0, 0, pcvt->x, &pcvt->dpvt);
                 break;
             }
             case menuCvtMethodSubroutine: {
@@ -756,7 +820,7 @@ static void initConversionTask(void* parm)
             continue;
         }
         pcvt = msg.record;
-        status = initConversion(pcvt->name, msg.bdir, msg.tdir, msg.meth, msg.spec, &sub);
+        status = initConversion(pcvt->name, msg.bdir, msg.tdir, msg.meth, msg.spec, &sub, pcvt);
         dbScanLock((struct dbCommon *)pcvt);
         if (status && pcvt->ista != menuCvtInitStateAgain) {
             if (pcvt->ista != menuCvtInitStateError) {
