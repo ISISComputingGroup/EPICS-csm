@@ -1354,6 +1354,50 @@ epicsShareExtern double csm_z(csm_function *func, double x, double y)
     return(ret);
   }
 
+  /*! \brief get x or y array elements from struct
+
+  This function pulls out the x or y array data from a csm_function struct 
+  for use with the user defined 1d table subroutine.
+  \param func pointer to the function object
+  \param axis which axis of values to extract, x or y
+  \param arr the array to put the values into
+  \return arr
+*/
+
+/*@EX(1)*/
+epicsShareExtern double *get_arr_values(csm_function *func, char axis, double *arr, int arr_len) {
+  switch(axis) {
+    case 'x':
+      for (int i = 0; i<=arr_len; i++) {
+        arr[i] = func->f.tf_1.x.coordinate[i].value;
+      }
+      break;
+    case 'y':
+      for (int i = 0; i<=arr_len; i++) {
+        arr[i] = func->f.tf_1.y.coordinate[i].value;
+      }
+      break;
+    default:
+      return -1;
+  }
+  return arr;
+}
+
+  /*! \brief get number of coordinate data points
+
+  This function pulls out the number of x or y array data points from a csm_function struct 
+  for use with the user defined 1d table subroutine.
+  \param func pointer to the function object
+  \return len length of array 
+*/
+
+/*@EX(1)*/
+epicsShareExtern int get_arr_len(csm_function *func) {
+  int len = 0;
+  len = func->f.tf_1.x.no_of_elements;
+  return len;
+}
+
     /*----------------------------------------------------*/
     /*@IL                initialization                   */
     /*----------------------------------------------------*/
