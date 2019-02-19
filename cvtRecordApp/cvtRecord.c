@@ -135,6 +135,8 @@ epicsExportAddress(rset,cvtRSET);
  */
 typedef double cvt_subroutine(double,double,void**);
 
+typedef double (*user1DTableSub_t)(bool, double *, double *, int, double, void **);
+
 /* Values for field DRTY (dirty bits) */
 #define DRTY_NONE 0x00
 #define DRTY_METH 0x01
@@ -545,23 +547,19 @@ static long initConversion(
             return -1;
           }
           else {
-            no_of_elements = csub->f.tf_1.x.no_of_elements;
+            no_of_elements = get_arr_len(csub);
             x_arr = (double *)malloc(sizeof(double) * no_of_elements);
             y_arr = (double *)malloc(sizeof(double) * no_of_elements);
-            // extract relevant data from csub->f.tf_1.x and y values
-            for (int i=0; i<no_of_elements; i++) {
-              x_arr[i] = csub->f.tf_1.x.coordinate[i]->value;
-              y_arr[i] = csub->f.tf_1.y.coordinate[i]->value;
-            }
+            // extract relevant data from csub
+            x_arr = get_arr_values(csub, 'x', x_arr, no_of_elements);
+            y_arr = get_arr_values(csub, 'y', y_arr, no_of_elements);
             // discard csub - no longer needed
             csm_free(csub);
           }
-          // Register function
-          // REGISTRYFUNCTION user1DTableSub(bool isInit, double x_data[], double y_data[], int len_arr, double x, void ** dpvt);
+          //   Register function
+          user1DTableSub_t user1DTableSub;
 
-          double (*user1DTableSub)(bool isInit, double x_data[], double y_data[], int len_arr, double x, void ** dpvt);
-
-          // user1DTableSub = registryFunction(user1DTableSub);
+          user1DTableSub = (user1DTableSub_t) registryFunctionFind("user1DTableSub"); // string must match function supplied in support directory
           if (!user1DTableSub) {
               nerrmsg(name, "configuration error: subroutine not registered");
               return -1;
@@ -652,8 +650,7 @@ static long convert(struct cvtRecord *pcvt)
             case menuCvtMethodUser1DTableSub: {
                 // call subroutine with false init flag so that it doesn't
                 // try to rebuild the fit and realloc.
-                double (*user1DTableSubPtr)(bool, double, double, int, double, void **);
-                user1DTableSubPtr = pcvt->csub;
+                user1DTableSub_t user1DTableSubPtr = (user1DTableSub_t)pcvt->csub;
 
                 if (!user1DTableSubPtr) {
                   goto error;
