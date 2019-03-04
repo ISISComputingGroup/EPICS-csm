@@ -1365,7 +1365,8 @@ epicsShareExtern double csm_z(csm_function *func, double x, double y)
 */
 
 /*@EX(1)*/
-epicsShareExtern double *get_arr_values(csm_function *func, char axis, double *arr, int arr_len) {
+epicsShareExtern double *get_arr_values(csm_function *func, char axis, double *arr, int arr_len) 
+{
   switch(axis) {
     case 'x':
       for (int i = 0; i<=arr_len; i++) {
@@ -1392,7 +1393,8 @@ epicsShareExtern double *get_arr_values(csm_function *func, char axis, double *a
 */
 
 /*@EX(1)*/
-epicsShareExtern int get_arr_len(csm_function *func) {
+epicsShareExtern int get_arr_len(csm_function *func) 
+{
   int len = 0;
   len = func->f.tf_1.x.no_of_elements;
   return len;
