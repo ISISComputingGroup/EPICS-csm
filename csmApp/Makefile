@@ -5,8 +5,6 @@ LIBRARY_IOC = csmbase
 csmbase_SRCS = csmbase.c
 csmbase_LIBS += $(EPICS_BASE_IOC_LIBS)
 
-USR_CFLAGS += /Od
-
 INC = csmbase.h
 
 #DOCS += html latex man
