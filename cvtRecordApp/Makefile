@@ -5,8 +5,6 @@ include $(TOP)/configure/CONFIG_APP
 
 DBDINC = cvtRecord menuCvtMethod menuCvtInitState
 
-USR_CFLAGS += /Od
-
 LIB_SRCS = cvtRecord.c
 
 LIBRARY_IOC += cvtRecord
