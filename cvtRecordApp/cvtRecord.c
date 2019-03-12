@@ -551,8 +551,8 @@ static long initConversion(
             x_arr = (double *)malloc(sizeof(double) * no_of_elements);
             y_arr = (double *)malloc(sizeof(double) * no_of_elements);
             // extract relevant data from csub
-            x_arr = get_arr_values(csub, 'x', x_arr, no_of_elements);
-            y_arr = get_arr_values(csub, 'y', y_arr, no_of_elements);
+            get_arr_values(csub, 'x', x_arr, no_of_elements);
+            get_arr_values(csub, 'y', y_arr, no_of_elements);
             // discard csub - no longer needed
             csm_free(csub);
           }
@@ -561,13 +561,13 @@ static long initConversion(
 
           user1DTableSub = (user1DTableSub_t) registryFunctionFind("user1DTableSub"); // string must match function supplied in support directory
           if (!user1DTableSub) {
-              nerrmsg(name, "configuration error: subroutine not registered");
+			  nerrmsg(name, "configuration error: subroutine not registered");
               return -1;
           }
           // Once read, run the function with an init flag to get it
           // to build a spline fit with the data read from the table.
           (*user1DTableSub)(true, x_arr, y_arr, no_of_elements, 0, &pcvt->dpvt);
-          pcvt->csub = user1DTableSub;
+		  *psub = user1DTableSub;
           free(x_arr);
           free(y_arr);
           break;
