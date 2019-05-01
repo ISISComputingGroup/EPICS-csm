@@ -1367,14 +1367,15 @@ epicsShareExtern double csm_z(csm_function *func, double x, double y)
 /*@EX(1)*/
 epicsShareExtern int get_arr_values(csm_function *func, char axis, double *arr, int arr_len) 
 {
+  int i;
   switch(axis) {
     case 'x':
-      for (int i = 0; i<arr_len; i++) {
+      for (i = 0; i<arr_len; i++) {
         arr[i] = func->f.tf_1.x.coordinate[i].value;
       }
       break;
     case 'y':
-      for (int i = 0; i<arr_len; i++) {
+      for (i = 0; i<arr_len; i++) {
         arr[i] = func->f.tf_1.y.coordinate[i].value;
       }
       break;
