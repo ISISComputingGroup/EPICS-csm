@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <stdbool.h>
 
 #include <epicsMessageQueue.h>
 #include <epicsThread.h>
@@ -135,7 +134,7 @@ epicsExportAddress(rset,cvtRSET);
  */
 typedef double cvt_subroutine(double,double,void**);
 
-typedef double (*user1DTableSub_t)(bool, double *, double *, int, double, void **);
+typedef double (*user1DTableSub_t)(int, double *, double *, int, double, void **);
 
 /* Values for field DRTY (dirty bits) */
 #define DRTY_NONE 0x00
@@ -566,7 +565,7 @@ static long initConversion(
           }
           // Once read, run the function with an init flag to get it
           // to build a spline fit with the data read from the table.
-          (*user1DTableSub)(true, x_arr, y_arr, no_of_elements, 0, &pcvt->dpvt);
+          (*user1DTableSub)(1, x_arr, y_arr, no_of_elements, 0, &pcvt->dpvt);
 		  *psub = user1DTableSub;
           free(x_arr);
           free(y_arr);
@@ -655,7 +654,7 @@ static long convert(struct cvtRecord *pcvt)
                 if (!user1DTableSubPtr) {
                   goto error;
                 }
-                value = (*user1DTableSubPtr)(false, 0, 0, 0, pcvt->x, &pcvt->dpvt);
+                value = (*user1DTableSubPtr)(FALSE, 0, 0, 0, pcvt->x, &pcvt->dpvt);
                 break;
             }
             case menuCvtMethodSubroutine: {
