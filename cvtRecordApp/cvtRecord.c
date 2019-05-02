@@ -530,6 +530,7 @@ static long initConversion(
           double *x_arr;
           double *y_arr;
           int no_of_elements;
+          user1DTableSub_t user1DTableSub;
 
           csm_function *csub; // dummy csub
           char temp[BDIR_SIZE+TDIR_SIZE+SPEC_SIZE+2];
@@ -556,8 +557,6 @@ static long initConversion(
             csm_free(csub);
           }
           //   Register function
-          user1DTableSub_t user1DTableSub;
-
           user1DTableSub = (user1DTableSub_t) registryFunctionFind("user1DTableSub"); // string must match function supplied in support directory
           if (!user1DTableSub) {
 			  nerrmsg(name, "configuration error: subroutine not registered");
