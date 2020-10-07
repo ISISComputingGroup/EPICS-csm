@@ -1376,7 +1376,7 @@ epicsShareExtern int get_arr_values(csm_function *func, char axis, double *arr, 
       break;
     case 'y':
       for (i = 0; i<arr_len; i++) {
-        arr[i] = func->f.tf_1.y.coordinate[i].value;
+        arr[i] = func->f.tf_1.y.coordinate[func->f.tf_1.x.coordinate[i].index].value;
       }
       break;
     default:
