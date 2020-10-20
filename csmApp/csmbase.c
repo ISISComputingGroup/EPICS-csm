@@ -1357,7 +1357,8 @@ epicsShareExtern double csm_z(csm_function *func, double x, double y)
   /*! \brief get x or y array elements from struct
 
   This function pulls out the x or y array data from a csm_function struct 
-  for use with the user defined 1d table subroutine.
+  for use with the user defined 1d table subroutine. Data is ordered by the x 
+  dimension.
   \param func pointer to the function object
   \param axis which axis of values to extract, x or y
   \param arr the array to put the values into
@@ -1376,6 +1377,7 @@ epicsShareExtern int get_arr_values(csm_function *func, char axis, double *arr, 
       break;
     case 'y':
       for (i = 0; i<arr_len; i++) {
+        // get element from y using the sort index from the x array
         arr[i] = func->f.tf_1.y.coordinate[func->f.tf_1.x.coordinate[i].index].value;
       }
       break;
